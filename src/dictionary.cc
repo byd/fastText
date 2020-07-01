@@ -22,6 +22,7 @@ namespace fasttext {
 const std::string Dictionary::EOS = "</s>";
 const std::string Dictionary::BOW = "<";
 const std::string Dictionary::EOW = ">";
+const std::string Dictionary::EMPTY_FEATURE = "<>";
 
 Dictionary::Dictionary(std::shared_ptr<Args> args)
     : args_(args),
@@ -173,6 +174,22 @@ void Dictionary::computeSubwords(
     const std::string& word,
     std::vector<int32_t>& ngrams,
     std::vector<std::string>* substrings) const {
+  auto it = feature_.find(word);
+  if (it == feature_.end()) {
+    pushHash(ngrams, hash(EMPTY_FEATURE) % args_->bucket);
+    if (substrings) {
+      substrings->push_back(EMPTY_FEATURE);
+    }
+    return;
+  }
+  for (const auto &feature : it->second) {
+    int32_t h = hash(feature) % args_->bucket;
+    pushHash(ngrams, h);
+    if (substrings) {
+      substrings->push_back(feature);
+    }
+  }
+  /*
   for (size_t i = 0; i < word.size(); i++) {
     std::string ngram;
     if ((word[i] & 0xC0) == 0x80) {
@@ -191,7 +208,7 @@ void Dictionary::computeSubwords(
         }
       }
     }
-  }
+  } */
 }
 
 void Dictionary::initNgrams() {
@@ -229,6 +246,17 @@ bool Dictionary::readWord(std::istream& in, std::string& word) const {
   // trigger eofbit
   in.get();
   return !word.empty();
+}
+
+void Dictionary::readFeatureFromFile(std::istream& in) {
+  std::string feature;
+  std::vector<std::string> feature_list;
+  while (readWord(in, feature)) {
+    feature_list.emplace_back(feature);
+  }
+  if (feature_list.size() > 0) {
+    feature_[feature] = feature_list;
+  }
 }
 
 void Dictionary::readFromFile(std::istream& in) {

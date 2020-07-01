@@ -47,6 +47,7 @@ class Dictionary {
   std::shared_ptr<Args> args_;
   std::vector<int32_t> word2int_;
   std::vector<entry> words_;
+  std::unordered_map<std::string, std::vector<std::string>> feature_;
 
   std::vector<real> pdiscard_;
   int32_t size_;
@@ -65,6 +66,7 @@ class Dictionary {
   static const std::string EOS;
   static const std::string BOW;
   static const std::string EOW;
+  static const std::string EMPTY_FEATURE;
 
   explicit Dictionary(std::shared_ptr<Args>);
   explicit Dictionary(std::shared_ptr<Args>, std::istream&);
@@ -91,6 +93,7 @@ class Dictionary {
   void add(const std::string&);
   bool readWord(std::istream&, std::string&) const;
   void readFromFile(std::istream&);
+  void readFeatureFromFile(std::istream&);
   std::string getLabel(int32_t) const;
   void save(std::ostream&) const;
   void load(std::istream&);

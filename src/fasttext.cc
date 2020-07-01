@@ -755,6 +755,12 @@ void FastText::train(const Args& args, const TrainCallback& callback) {
   dict_->readFromFile(ifs);
   ifs.close();
 
+  ifs.open(args_->feature);
+  if (ifs.is_open()) {
+    dict_->readFeatureFromFile(ifs);
+    ifs.close();
+  }
+
   if (!args_->pretrainedVectors.empty()) {
     input_ = getInputMatrixFromFile(args_->pretrainedVectors);
   } else {
